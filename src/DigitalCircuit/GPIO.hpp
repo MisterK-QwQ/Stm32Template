@@ -25,11 +25,11 @@ inline void decompose_key(GpioKey key, GPIO_TypeDef*& port, uint16_t& pin) {
 
 class Hardware {
 public:
-/*     PWMChannel pwm_channel;
+    PWMChannel pwm_channel;
     SPIChannel spi_channel;
     I2CChannel i2c_channel;
     DMAChannel dma_channel;
-    ADCChannel adc_channel; */
+    ADCChannel adc_channel; 
 };
 
 class GpioData {

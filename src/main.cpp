@@ -3,18 +3,16 @@
 #include "Data/Data.hpp"
 
 #define _Dog
-//#define _Log
-
-void SysTick_Handler(void) {
-  HAL_IncTick(); // 每1ms调用一次
-}
+#define _Log
 int i=0;
-
 void OnOpenLedEvent(GpioEvent& event) {
-     HAL_GPIO_TogglePin(event.Port, event.pin);
-
+    if(event.pin == GPIO_PIN_0 && event.Port == GPIOA){
+        if(i>1000)i=0;
+        i+=50;
+        event.Data->hardware_info.pwm_channel.SetDuty(50); // 设置PA0的PWM占空比为50%
+    }
     if (event.pin == GPIO_PIN_13 && event.Port == GPIOC) {
-        //event.Data->hardware_info.pwm_channel->SetDuty(i);
+        HAL_GPIO_TogglePin(event.Port,event.pin);
     }
 }
 
@@ -38,7 +36,6 @@ int main(void) {
         for(volatile uint32_t i=0;i<50000;i++);
         }
     }
-    
     __HAL_RCC_ADC1_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE(); 
     __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -55,8 +52,7 @@ int main(void) {
     while (true) {
         manager->read();     
 #ifdef _Dog
-         HAL_IWDG_Refresh(&Data.hiwdg);  // 喂狗
+        HAL_IWDG_Refresh(&Data.hiwdg);  // 喂狗
 #endif
-        HAL_Delay(100); // 主循环延时，避免过度占用CPU
     }
 }

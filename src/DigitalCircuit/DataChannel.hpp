@@ -9,13 +9,10 @@ I2CChannel() = default;
      * @param hi2c 指向已配置好的I2C句柄
      * @details 外部需配置I2C核心参数（如时钟速度、地址模式等）
      */
-    I2CChannel(I2C_HandleTypeDef hi2c){
-        hi2c1 = hi2c;
+    I2CChannel(I2C_HandleTypeDef hi2c)
+    : hi2c1(hi2c) {
         HAL_I2C_Init(&hi2c1);
     };
-
-    I2CChannel(const I2CChannel&) = delete;
-
      /**
      * @brief 向I2C从设备指定寄存器写入数据
      * @param dev_addr 从设备7位地址（无需左移，内部自动处理读写位）
@@ -78,8 +75,6 @@ public:
     SPI_HandleTypeDef hspi1;
 
     SPIChannel() = default;
-
-    SPIChannel(const SPIChannel&) = delete;
 
     void SPI1_Manual_Init(SPI_HandleTypeDef hspi) {
         hspi1 = hspi;
