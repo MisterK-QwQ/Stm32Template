@@ -73,7 +73,7 @@ I2CChannel() = default;
 class SPIChannel {
 public:
     SPI_HandleTypeDef hspi1;
-
+    SPIChannel(const SPIChannel&) = delete;
     SPIChannel() = default;
 
     void SPI1_Manual_Init(SPI_HandleTypeDef hspi) {

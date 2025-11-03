@@ -1,5 +1,7 @@
 #pragma once
 
+#define _Dog
+#define _Log
 
 #include <cstdint>
 #include <cstring>

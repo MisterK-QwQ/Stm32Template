@@ -7,6 +7,7 @@ private:
 public:
     DMA_HandleTypeDef hdma;  // DMA句柄，存储DMA配置信息
     DMAChannel() = default;
+    DMAChannel(const DMAChannel&) = delete;
     DMAChannel(DMA_HandleTypeDef dma)
     : hdma(dma) {
         HAL_DMA_Init(&hdma);

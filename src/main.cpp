@@ -2,40 +2,26 @@
 #include "Utils/Utils.hpp"
 #include "Data/Data.hpp"
 
-#define _Dog
-#define _Log
-int i=0;
+
+uint32_t duty=0;
+uint32_t Fduty=10;
 void OnOpenLedEvent(GpioEvent& event) {
-    if(event.pin == GPIO_PIN_0 && event.Port == GPIOA){
-        if(i>1000)i=0;
-        i+=50;
-        event.Data->hardware_info.pwm_channel.SetDuty(50); // 设置PA0的PWM占空比为50%
+    if(event.pin==GPIO_PIN_0) {
+    duty +=Fduty;
+    if (duty >= 100) {
+        Fduty = -10;
+    }else if (duty == 0) {
+        Fduty = 10;
     }
-    if (event.pin == GPIO_PIN_13 && event.Port == GPIOC) {
-        HAL_GPIO_TogglePin(event.Port,event.pin);
+    LogF.logF(LogLevel::INFO,"Duty:%d",duty);
+    event.Data->hardware_info.pwm_channel.SetDuty(duty);
     }
 }
 
 int main(void) {
-    if (HAL_Init() != HAL_OK) {
-        __HAL_RCC_GPIOC_CLK_ENABLE();
-        GPIO_InitTypeDef init = {GPIO_PIN_13, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW};
-        HAL_GPIO_Init(GPIOC, &init);
-        while(1) {
-        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-        for(volatile uint32_t i=0;i<100000;i++);
-        }
-    }
-    
-    if (SystemClock_Config() != true) {
-        __HAL_RCC_GPIOC_CLK_ENABLE();
-        GPIO_InitTypeDef init = {GPIO_PIN_13, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW};
-        HAL_GPIO_Init(GPIOC, &init);
-        while(1) {
-        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-        for(volatile uint32_t i=0;i<50000;i++);
-        }
-    }
+    HAL_Init();
+    SystemClock_Config();
+
     __HAL_RCC_ADC1_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE(); 
     __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -54,5 +40,6 @@ int main(void) {
 #ifdef _Dog
         HAL_IWDG_Refresh(&Data.hiwdg);  // 喂狗
 #endif
+     //  LogF.logF(LogLevel::INFO,"Tick");
     }
 }

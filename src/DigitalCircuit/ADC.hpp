@@ -5,6 +5,8 @@ private:
     uint8_t calibrated = 0;
 public:
     ADC_HandleTypeDef hadc;
+    ADC_ChannelConfTypeDef sConfig;
+    ADCChannel(const ADCChannel&) = delete;
     ADCChannel() = default;    
     /**
      * @brief 构造函数，初始化ADC通道
