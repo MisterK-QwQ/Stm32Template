@@ -9,7 +9,8 @@ I2CChannel() = default;
      * @param hi2c 指向已配置好的I2C句柄
      * @details 外部需配置I2C核心参数（如时钟速度、地址模式等）
      */
-    I2CChannel(I2C_HandleTypeDef hi2c): hi2c1(hi2c) {
+    I2CChannel(I2C_HandleTypeDef hi2c){
+        hi2c1 = hi2c;
         HAL_I2C_Init(&hi2c1);
     };
 

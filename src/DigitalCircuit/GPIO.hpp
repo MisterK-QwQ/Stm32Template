@@ -25,12 +25,11 @@ inline void decompose_key(GpioKey key, GPIO_TypeDef*& port, uint16_t& pin) {
 
 class Hardware {
 public:
-    PWMChannel pwm_channel;
+/*     PWMChannel pwm_channel;
     SPIChannel spi_channel;
     I2CChannel i2c_channel;
     DMAChannel dma_channel;
-    ADCChannel adc_channel;
-    Hardware() = default;
+    ADCChannel adc_channel; */
 };
 
 class GpioData {
@@ -55,9 +54,8 @@ public:
     /**
      * @brief 添加GPIO引脚配置
      */
-    void Add(GPIO_TypeDef* port,const GPIO_InitTypeDef& init, 
-             const Hardware& hardware=Hardware())
-              {
+      void Add(GPIO_TypeDef* port,const GPIO_InitTypeDef& init, 
+             const Hardware& hardware = Hardware()) {
         if (port == nullptr) return;  // 无效参数检查
         GpioKey key = make_key(port, init.Pin);
         auto data = std::make_unique<GpioData>();

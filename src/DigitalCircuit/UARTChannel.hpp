@@ -11,7 +11,8 @@ UARTChannel() = default;
      * @param huart 指向已配置好的UART句柄
      * @details 外部需配置UART核心参数（如波特率、数据位等）
      */
-    UARTChannel(UART_HandleTypeDef huart): huart1(huart) {
+    UARTChannel(UART_HandleTypeDef huart){
+        huart1 = huart;
         HAL_UART_Init(&huart1);
     };
     

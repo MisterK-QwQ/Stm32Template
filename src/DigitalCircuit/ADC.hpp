@@ -12,12 +12,13 @@ public:
      * @param sConfig ADC通道配置结构体
      * @details 外部需配置ADC核心参数（如扫描模式、连续转换等）
      */
-    ADCChannel(ADC_HandleTypeDef adc,ADC_ChannelConfTypeDef sConfig): hadc(adc) {
+    ADCChannel(ADC_HandleTypeDef adc,ADC_ChannelConfTypeDef sConfig){
+        hadc = adc;
         calibrated = 0; // 初始未校准
         HAL_ADC_Init(&hadc);
         HAL_ADC_ConfigChannel(&hadc, &sConfig);
     }
-
+    
     ADCChannel(const ADCChannel&) = delete;
 
 

@@ -2,21 +2,19 @@
 #include "Utils/Utils.hpp"
 #include "Data/Data.hpp"
 
+#define _Dog
+//#define _Log
+
 void SysTick_Handler(void) {
   HAL_IncTick(); // 每1ms调用一次
 }
 int i=0;
 
 void OnOpenLedEvent(GpioEvent& event) {
+     HAL_GPIO_TogglePin(event.Port, event.pin);
+
     if (event.pin == GPIO_PIN_13 && event.Port == GPIOC) {
-        if(!event.Initialize){
-            event.Initialize=true;
-            event.Data->hardware_info.pwm_channel.PWM_Start();
-        }
-        if(i<999)
-            i=0;
-        i+=50;
-        event.Data->hardware_info.pwm_channel.SetDuty(i);
+        //event.Data->hardware_info.pwm_channel->SetDuty(i);
     }
 }
 
