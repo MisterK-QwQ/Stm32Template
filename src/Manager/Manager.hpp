@@ -11,6 +11,8 @@ public:
 
     void init();
     void read();
+    void read(GPIO_TypeDef port); 
+
     Manager(/* args */);
     ~Manager();
 };

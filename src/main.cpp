@@ -2,29 +2,24 @@
 #include "Utils/Utils.hpp"
 #include "Data/Data.hpp"
 
-
-uint32_t duty=0;
-uint32_t Fduty=10;
+uint8_t currentAngle = 0;    // 初始角度0°
+uint8_t Angle = 10;
 void OnOpenLedEvent(GpioEvent& event) {
-    if(event.pin==GPIO_PIN_0) {
-    duty +=Fduty;
-    if (duty >= 100) {
-        Fduty = -10;
-    }else if (duty == 0) {
-        Fduty = 10;
-    }
-    HAL_Delay(100);
-    //LogF.logF(LogLevel::INFO,"Duty:%d",duty);
-    event.Data->hardware_info.pwm_channel.SetDuty(duty);
+    if(event.pin==GPIO_PIN_13){
+        HAL_GPIO_TogglePin(event.Port,event.pin);
+        HAL_Delay(100);
+
     }
 }
-
 int main(void) {
     HAL_Init();
     SystemClock_Config();
-
-   // __HAL_RCC_ADC1_CLK_ENABLE();
-   // __HAL_RCC_GPIOC_CLK_ENABLE(); 
+    //使能接口
+   // __HAL_RCC_ADC1_CLK_ENABLE();  
+   __HAL_RCC_GPIOC_CLK_ENABLE(); 
+    // __HAL_RCC_I2C1_CLK_ENABLE();
+   // __HAL_RCC_GPIOB_CLK_ENABLE();
+   // __HAL_RCC_TIM3_CLK_ENABLE();  // 使能TIM3时钟
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_TIM2_CLK_ENABLE();
 #ifdef _Dog
@@ -37,11 +32,17 @@ int main(void) {
     manager->mDispatcher->registerListener<GpioEvent>(OnOpenLedEvent); // 注册事件监听器
     LogF.logF(LogLevel::INFO,"Initialized");
     while (true) {
-        manager->read();     
+        manager->read();      
 #ifdef _Dog
         HAL_IWDG_Refresh(&Data.hiwdg);  // 喂狗
 #endif
-
-     //  LogF.logF(LogLevel::INFO,"Tick");
+    //   LogF.logF(LogLevel::INFO,"Tick");
     }
+}
+extern "C" void SysTick_Handler(void){   //每1msTick运行一次
+  HAL_IncTick();  
+}
+
+extern "C" void EXTI0_IRQHandler(void){
+  
 }

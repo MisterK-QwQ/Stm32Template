@@ -18,10 +18,20 @@ void Manager::read() {
     });
 }
 
+void Manager::read(GPIO_TypeDef port) {
+     gpio.ForEach([this](GPIO_TypeDef* port, uint16_t pin, GpioData* data) {
+        if(data->initialized&&data->port==port){
+            GPIO_PinState state = gpio.read(port, pin);
+            GpioEvent event(pin, port, state, data);
+            mDispatcher->trigger(event);
+        }
+    });
+}
+
 void Manager::init() {
-    gpio.Add(GPIOA, 
+   /*  gpio.Add(GPIOA, 
          {GPIO_PIN_0, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH}, 
-         Hardware{.pwm_channel= 
+         Hardware( 
              PWMChannel(
                  TIM_HandleTypeDef{
                      .Instance=TIM2,
@@ -46,8 +56,10 @@ void Manager::init() {
                      .OCFastMode=TIM_OCFAST_DISABLE,
                  },
                  TIM_CHANNEL_1
-             )});
+             ))); */
 
+    gpio.Add(GPIOC,{GPIO_PIN_13,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_LOW});
+    
    // gpio.Add(GPIOA, {GPIO_PIN_0, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH});  // 按键输入
     gpio.Add(GPIOA, {GPIO_PIN_9, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH});  // USART1_RX
     gpio.Add(GPIOA, {GPIO_PIN_10, GPIO_MODE_AF_INPUT, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH});  // USART1_TX

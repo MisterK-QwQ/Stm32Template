@@ -29,7 +29,25 @@ public:
     SPIChannel spi_channel;
     I2CChannel i2c_channel;
     DMAChannel dma_channel;
-    ADCChannel adc_channel; 
+    ADCChannel adc_channel;
+    
+    Hardware() = default;
+
+    Hardware(PWMChannel pwm){
+        pwm_channel = pwm;
+    }
+    Hardware(SPIChannel spi) {
+        spi_channel = spi;
+    }
+    Hardware(I2CChannel i2c){
+        i2c_channel = i2c;
+    }
+    Hardware(DMAChannel dma){
+        dma_channel = dma;
+    }
+    Hardware(ADCChannel adc){
+        adc_channel = adc;
+    }
 };
 
 class GpioData {

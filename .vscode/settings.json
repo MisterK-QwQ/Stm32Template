@@ -7,6 +7,7 @@
         "gpio.h": "c",
         "data.hpp": "c",
         "logger.hpp": "c",
-        "utils.hpp": "c"
+        "utils.hpp": "c",
+        "oled_font.h": "c"
     }
 }

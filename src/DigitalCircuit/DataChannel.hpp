@@ -1,9 +1,10 @@
 #pragma once
 #include "stm32f1xx_hal.h"
+#include <vector>
 class I2CChannel {
 public:
     I2C_HandleTypeDef hi2c1;
-I2CChannel() = default;
+    I2CChannel() = default;
     /**
      * @brief 构造函数，初始化I2C通道
      * @param hi2c 指向已配置好的I2C句柄
@@ -40,7 +41,52 @@ I2CChannel() = default;
                             len,            // 数据长度
                             timeout);           // 超时时间（ms）
     }
-
+    
+    HAL_StatusTypeDef I2C_Write( 
+         uint8_t dev_addr,         // 必选：从设备7位地址
+        uint16_t reg_addr,        // 必选：寄存器地址
+        std::vector<uint8_t*>& data,            // 必选：数据缓冲区
+        uint16_t len,             // 必选：数据长度
+        uint16_t bit = I2C_MEMADD_SIZE_8BIT,  // 可选：寄存器地址长度（默认8位）
+        uint32_t timeout = 100    // 可选：超时时间（默认100ms）
+    ) {
+        for(size_t i=0;i<data.size();++i){
+            auto Status = HAL_I2C_Mem_Write(&hi2c1, 
+                                dev_addr << 1,  // 7位地址左移1位（最低位0表示写）
+                                reg_addr,       // 目标寄存器地址
+                                bit,  // 寄存器地址长度：8位
+                                data[i],           // 待发送数据
+                                len,            // 数据长度
+                                timeout);           // 超时时间（ms）
+            if(Status !=HAL_OK){
+                return Status;
+            }
+        }
+        return HAL_OK;
+    }
+    
+     HAL_StatusTypeDef I2C_Write(
+        uint8_t dev_addr,
+        uint16_t reg_addr,
+        const std::vector<std::vector<uint8_t>>& data,  // 多数据块集合
+        uint16_t bit = I2C_MEMADD_SIZE_8BIT,
+        uint32_t timeout = 100
+    ) {
+        for (const auto& block : data) {
+            HAL_StatusTypeDef status = I2C_Write(
+                dev_addr,
+                reg_addr,
+                const_cast<uint8_t*>(block.data()),  // 数据块首地址
+                block.size(),                        // 数据块长度（2字节）
+                bit,
+                timeout
+            );
+            if (status != HAL_OK) {
+                return status;  // 任一数据块失败则返回错误
+            }
+        }
+        return HAL_OK;
+    }
     /**
      * @brief 从I2C从设备指定寄存器读取数据
      * @param dev_addr 从设备7位地址（无需左移，内部自动处理读写位）
@@ -91,7 +137,15 @@ public:
     HAL_StatusTypeDef SPI_SendData(uint8_t* data, uint16_t len,uint32_t timeout=100) {
         return HAL_SPI_Transmit(&hspi1, data, len, timeout); 
     }
-
+        HAL_StatusTypeDef SPI_SendData(std::vector<uint8_t*> data, uint16_t len,uint32_t timeout=100) {
+            for(size_t i=0;i<data.size();i++){
+                 HAL_StatusTypeDef Status = HAL_SPI_Transmit(&hspi1, data[i], len, timeout); 
+                if(Status!=HAL_OK){
+                    return Status;
+                }
+            }
+        return HAL_OK;
+    }
     /**
      * @brief 通过SPI接收数据
      * @param data 接收数据缓冲区
