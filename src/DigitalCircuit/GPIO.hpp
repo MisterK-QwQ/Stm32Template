@@ -60,16 +60,30 @@ public:
 
 class GPIO {
 private:
+   
     static constexpr size_t MAX_GPIO_PINS = 64;  // 最大支持64个引脚
     std::array<std::unique_ptr<GpioData>, MAX_GPIO_PINS> m_gpio_array;
     size_t m_count = 0;  // 当前已添加的引脚数量
 public:
+    std::array<std::pair<bool, size_t>, 12> clock = {{
+            {false,0},//[0] GPIOA
+            {false,0},//[1] GPIOB 
+            {false,0}//[2] GPIOC
+            //[...]
+        }};
+
     GPIO() = default;
     ~GPIO() = default;
 
     GPIO(const GPIO&) = delete;
     GPIO& operator=(const GPIO&) = delete;
 
+    size_t GetGpioSize(){
+        return m_count;
+    }
+    std::array<std::unique_ptr<GpioData>, MAX_GPIO_PINS>& Get_gpio_array(){
+        return m_gpio_array;
+    }
     /**
      * @brief 添加GPIO引脚配置
      */
@@ -168,8 +182,32 @@ public:
      * @brief 初始化所有未初始化的GPIO引脚
      */
     void InitAll() {
-        ForEach([](GPIO_TypeDef* port, uint16_t pin, GpioData* data) {
+        ForEach([this](GPIO_TypeDef* port, uint16_t pin, GpioData* data) {
             if (!data->initialized) {
+                if(data->port==GPIOA){
+                    if(!clock[0].first){
+                        __HAL_RCC_GPIOA_CLK_ENABLE();
+                        clock[0].first=true;
+                    }
+                    ++clock[0].second;
+                }
+                
+                if(data->port==GPIOB){
+                      if(!clock[1].first){
+                        __HAL_RCC_GPIOB_CLK_ENABLE();
+                        clock[1].first=true;
+                    }
+                    ++clock[2].second;
+                }
+                
+                if(data->port==GPIOC){
+                    if(!clock[2].first){
+                        __HAL_RCC_GPIOC_CLK_ENABLE();
+                        clock[2].first=true;
+                    }
+                    ++clock[2].second;
+                }
+                
                 HAL_GPIO_Init(data->port, &data->init_config);
                 data->initialized = true;
             }

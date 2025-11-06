@@ -1,12 +1,21 @@
 #include "Manager.hpp"
-
+Manager* manager =new Manager();
 
 Manager::Manager(/* args */){
     mDispatcher = std::make_unique<EmbeddedEvent::Dispatcher>(); 
 }
 
-Manager::~Manager()
-{
+Manager::~Manager(){
+    if(gpio.clock[0].first){
+        __HAL_RCC_GPIOA_CLK_DISABLE();
+    }
+     if(gpio.clock[1].first){
+        __HAL_RCC_GPIOB_CLK_DISABLE();
+    }
+     if(gpio.clock[2].first){
+        __HAL_RCC_GPIOC_CLK_DISABLE();
+    }
+    delete manager;
 }
 void Manager::read() {
     gpio.ForEach([this](GPIO_TypeDef* port, uint16_t pin, GpioData* data) {
@@ -57,14 +66,13 @@ void Manager::init() {
                  },
                  TIM_CHANNEL_1
              ))); */
+    
 
     gpio.Add(GPIOC,{GPIO_PIN_13,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_LOW});
-    
+
    // gpio.Add(GPIOA, {GPIO_PIN_0, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH});  // 按键输入
     gpio.Add(GPIOA, {GPIO_PIN_9, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH});  // USART1_RX
     gpio.Add(GPIOA, {GPIO_PIN_10, GPIO_MODE_AF_INPUT, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH});  // USART1_TX
-
     gpio.InitAll();
-    
+    initManager=true;
 }
-Manager* manager =new Manager();
