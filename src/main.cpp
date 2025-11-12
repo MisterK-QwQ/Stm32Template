@@ -1,32 +1,27 @@
 #include "Manager/Manager.hpp"
 #include "Utils/Utils.hpp"
 #include "Data/Data.hpp"
+#include "DigitalCircuit/OLED.hpp"
 
+
+int LED_PWM = 0; 
 void OnOpenLedEvent(GpioEvent& event) {
-    if(event.pin==GPIO_PIN_8||event.pin==GPIO_PIN_9){
-        if(!event.Initialize){
-            auto status = event.Data->hardware_info.i2c_channel.I2C_Write(
-                0x3C,  
-                0x00,
-                { 
-                    {0x00, 0xAE},  // 0x00=命令标志，0xAE=关闭显示
-                    {0x00, 0xAF}   // 0x00=命令标志，0xAF=开启显示
-                }
-            );
-            event.Initialize=true;
-            LogF.logF(LogLevel::INFO, "OLED init status: %d", status);
-        }
+    if (event.pin == GPIO_PIN_14 && event.Port == GPIOC) {
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, 
+                        (event.state == GPIO_PIN_RESET) ?
+                        GPIO_PIN_RESET : GPIO_PIN_SET);
+    }
+    LED_PWM+=10;
+    if(LED_PWM>=19999) LED_PWM=0;
+    if(event.pin == GPIO_PIN_0 && event.Port == GPIOA) {
+        HAL_Delay(20);
+        event.Data->hardware_info.pwm_channel.SetDuty(LED_PWM);
     }
 }
 
 int main(void) {
     HAL_Init();
     SystemClock_Config();
-    __HAL_RCC_I2C1_CLK_ENABLE();
-   // __HAL_RCC_ADC1_CLK_ENABLE();  
-    // __HAL_RCC_I2C1_CLK_ENABLE();
-   // __HAL_RCC_TIM3_CLK_ENABLE();  // 使能TIM3时钟
-    //__HAL_RCC_TIM2_CLK_ENABLE();
 #ifdef _Dog
     IWDG_Init(); // 启动定时器中断  看门狗
 #endif
@@ -43,11 +38,13 @@ int main(void) {
         ,manager.gpio.clock[2].second
     );
 
+
     while (true) {
         manager.read();      
 #ifdef _Dog
         HAL_IWDG_Refresh(&Data.hiwdg);  // 喂狗
 #endif
+     //  LogF.logF(LogLevel::INFO,"Tick");
     }
 }
 extern "C" void SysTick_Handler(void){   //每1msTick运行一次

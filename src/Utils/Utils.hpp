@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <cstring>
 #include <cmath>
-
+#include "Math.hpp"
 #include "stm32f1xx_hal.h"
 #include "Time.hpp"
 class Utils {

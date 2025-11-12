@@ -3,16 +3,16 @@
 #include <vector>
 class I2CChannel {
 public:
-    I2C_HandleTypeDef hi2c1;
+    I2C_HandleTypeDef hi2c;
     I2CChannel() = default;
     /**
      * @brief 构造函数，初始化I2C通道
      * @param hi2c 指向已配置好的I2C句柄
      * @details 外部需配置I2C核心参数（如时钟速度、地址模式等）
      */
-    I2CChannel(I2C_HandleTypeDef hi2c)
-    : hi2c1(hi2c) {
-        HAL_I2C_Init(&hi2c1);
+    I2CChannel(I2C_HandleTypeDef Hi2c)
+    : hi2c(Hi2c) {
+        HAL_I2C_Init(&hi2c);
     };
      /**
      * @brief 向I2C从设备指定寄存器写入数据
@@ -33,7 +33,7 @@ public:
         uint16_t bit = I2C_MEMADD_SIZE_8BIT,  // 可选：寄存器地址长度（默认8位）
         uint32_t timeout = 100    // 可选：超时时间（默认100ms）
     ) {
-    return HAL_I2C_Mem_Write(&hi2c1, 
+    return HAL_I2C_Mem_Write(&hi2c, 
                             dev_addr << 1,  // 7位地址左移1位（最低位0表示写）
                             reg_addr,       // 目标寄存器地址
                             bit,  // 寄存器地址长度：8位
@@ -51,7 +51,7 @@ public:
         uint32_t timeout = 100    // 可选：超时时间（默认100ms）
     ) {
         for(size_t i=0;i<data.size();++i){
-            auto Status = HAL_I2C_Mem_Write(&hi2c1, 
+            auto Status = HAL_I2C_Mem_Write(&hi2c, 
                                 dev_addr << 1,  // 7位地址左移1位（最低位0表示写）
                                 reg_addr,       // 目标寄存器地址
                                 bit,  // 寄存器地址长度：8位
@@ -106,7 +106,7 @@ public:
         uint16_t bit = I2C_MEMADD_SIZE_8BIT,  // 可选：寄存器地址长度（默认8位）
         uint32_t timeout = 100    // 可选：超时时间（默认100ms）
     ) {
-        return HAL_I2C_Mem_Read(&hi2c1, 
+        return HAL_I2C_Mem_Read(&hi2c, 
                                 dev_addr << 1,  // 7位地址左移1位（最低位1表示读，内部自动处理）
                                 reg_addr,       // 目标寄存器地址
                                 bit,  // 寄存器地址长度：8位

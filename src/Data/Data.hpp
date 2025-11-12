@@ -9,7 +9,7 @@ struct DATA{
 Logger LogF(&Data.huart1);
 
 bool USART1_UART_Init(void) {
-    __HAL_RCC_USART1_CLK_ENABLE(); // 提前使能USART1时钟
+  __HAL_RCC_USART1_CLK_ENABLE(); // 提前使能USART1时钟
 
   Data.huart1.Instance = USART1;
   Data.huart1.Init.BaudRate = 9600;  // 设置波特率

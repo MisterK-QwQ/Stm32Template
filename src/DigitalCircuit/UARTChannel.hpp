@@ -15,8 +15,7 @@ public:
     : huart1(huart) {
         HAL_UART_Init(&huart1);
     };
-    UARTChannel(const UARTChannel&) = delete;
-
+    
     /**
      * @brief 发送数据
      * @param data 待发送数据缓冲区

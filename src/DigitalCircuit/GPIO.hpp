@@ -30,10 +30,14 @@ public:
     I2CChannel i2c_channel;
     DMAChannel dma_channel;
     ADCChannel adc_channel;
+    UARTChannel uart_channel;
     
     Hardware() = default;
 
-    Hardware(PWMChannel pwm){
+    Hardware(UARTChannel uart){
+        uart_channel = uart;
+    }
+     Hardware(PWMChannel pwm){
         pwm_channel = pwm;
     }
     Hardware(SPIChannel spi) {
@@ -52,7 +56,8 @@ public:
 
 class GpioData {
 public:
-    bool initialized = false;               // 初始化状态标记
+    bool Data_initialized;
+    bool Gpio_initialized;               // 初始化状态标记
     GPIO_TypeDef* port = nullptr;           // GPIO端口指针
     GPIO_InitTypeDef init_config;           // GPIO初始化配置
     Hardware hardware_info;                 // 硬件相关信息
@@ -60,17 +65,22 @@ public:
 
 class GPIO {
 private:
-   
     static constexpr size_t MAX_GPIO_PINS = 64;  // 最大支持64个引脚
     std::array<std::unique_ptr<GpioData>, MAX_GPIO_PINS> m_gpio_array;
     size_t m_count = 0;  // 当前已添加的引脚数量
 public:
-    std::array<std::pair<bool, size_t>, 12> clock = {{
-            {false,0},//[0] GPIOA
-            {false,0},//[1] GPIOB 
-            {false,0}//[2] GPIOC
-            //[...]
-        }};
+
+    std::array<std::pair<bool, size_t>, 16> clock{};
+    /**
+     * [0] GPIOA
+     * [1] GPIOB
+     * [2] GPIOC
+     * [3] TIM1
+     * [4] TIM2
+     * [5] TIM3
+     * [6] I2C1
+     */
+
 
     GPIO() = default;
     ~GPIO() = default;
@@ -95,7 +105,8 @@ public:
         data->port = port;
         data->init_config = init;
         data->hardware_info = hardware;
-        data->initialized = false;
+        data->Gpio_initialized = false;
+        data->Data_initialized = false;
         m_gpio_array[m_count++] = std::move(data);  // 存入数组
     }
 
@@ -119,7 +130,7 @@ public:
      */
     GPIO_PinState read(GPIO_TypeDef* port, uint16_t pin) {
         GpioData* data = GetData(port, pin);
-        if (data && data->initialized && data->port != nullptr) {
+        if (data && data->Gpio_initialized && data->port != nullptr) {
             return HAL_GPIO_ReadPin(data->port, pin);
         }
         return GPIO_PIN_RESET;
@@ -160,21 +171,15 @@ public:
     std::tuple<GPIO_TypeDef*, uint16_t, GpioData*> FindIf(
         const std::function<bool(GPIO_TypeDef*, uint16_t, GpioData*)>& condition
     ) {
-        // 遍历数组中已添加的有效GPIO（仅遍历到m_count，避免多余操作）
         for (size_t i = 0; i < m_count; ++i) {
             const auto& data_ptr = m_gpio_array[i];
-            if (!data_ptr) continue;  // 跳过空元素（理论上m_count内无空元素，保险起见）
-
-            // 直接从GpioData中获取port和pin（无需分解key，效率更高）
+            if (!data_ptr) continue;
             GPIO_TypeDef* port = data_ptr->port;
             uint16_t pin = data_ptr->init_config.Pin;
-
-            // 检查条件是否匹配
             if (condition(port, pin, data_ptr.get())) {
                 return {port, pin, data_ptr.get()};
             }
         }
-        // 无匹配项
         return {nullptr, 0, nullptr};
     }
 
@@ -183,7 +188,7 @@ public:
      */
     void InitAll() {
         ForEach([this](GPIO_TypeDef* port, uint16_t pin, GpioData* data) {
-            if (!data->initialized) {
+            if (!data->Gpio_initialized) {
                 if(data->port==GPIOA){
                     if(!clock[0].first){
                         __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -207,9 +212,77 @@ public:
                     }
                     ++clock[2].second;
                 }
-                
+
+                //Hardware init.
+                if(data->hardware_info.pwm_channel.htim.Instance==TIM1){
+                    if(!clock[3].first){
+                        __HAL_RCC_TIM1_CLK_ENABLE();
+                        clock[3].first=true;
+                    }
+                    ++clock[3].second;
+                }
+                if(data->hardware_info.pwm_channel.htim.Instance==TIM2){
+                    if(!clock[4].first){
+                        __HAL_RCC_TIM2_CLK_ENABLE();
+                        clock[4].first=true;
+                    }
+                    ++clock[4].second;
+                }
+
+                if(data->hardware_info.pwm_channel.htim.Instance==TIM3){
+                    if(!clock[5].first){
+                        __HAL_RCC_TIM3_CLK_ENABLE();
+                        clock[5].first=true;
+                    }
+                    ++clock[5].second;
+                }
+                if (data->hardware_info.i2c_channel.hi2c.Instance == I2C1) {
+                    if (!clock[6].first) {
+                        __HAL_RCC_I2C1_CLK_ENABLE();
+                        clock[6].first = true;
+                    }
+                    ++clock[6].second;
+                }
+                if(data->hardware_info.uart_channel.huart1.Instance==USART1){
+                    if (!clock[7].first) {
+                        __HAL_RCC_USART1_CLK_ENABLE();
+                        clock[7].first = true;
+                    }
+                    ++clock[7].second;
+
+                }
+                 if(data->hardware_info.uart_channel.huart1.Instance==USART2){
+                    if (!clock[8].first) {
+                        __HAL_RCC_USART2_CLK_ENABLE();
+                        clock[8].first = true;
+                    }
+                    ++clock[8].second;
+                }
+                 if(data->hardware_info.spi_channel.hspi1.Instance==SPI1){
+                    if (!clock[9].first) {
+                        __HAL_RCC_SPI1_CLK_ENABLE();
+                        clock[9].first = true;
+                    }
+                    ++clock[9].second;
+                }
+                if(data->hardware_info.adc_channel.hadc.Instance==ADC1){
+                    if (!clock[10].first) {
+                        __HAL_RCC_ADC1_CLK_ENABLE();
+                        clock[10].first = true;
+                    }
+                    ++clock[10].second;
+                }
+                if(data->hardware_info.adc_channel.hadc.Instance==ADC2){
+                    if (!clock[11].first) {
+                        __HAL_RCC_ADC2_CLK_ENABLE();
+                        clock[11].first = true;
+                    }
+                    ++clock[11].second;
+                }
+
                 HAL_GPIO_Init(data->port, &data->init_config);
-                data->initialized = true;
+
+                data->Gpio_initialized = true;
             }
         });
     }
