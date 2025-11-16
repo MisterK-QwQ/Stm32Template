@@ -38,4 +38,11 @@ public:
         return true;
     }
     
+    static inline void HAL_Delay_us(uint32_t us) {
+        uint32_t ticks = us * (SystemCoreClock / 1000000);
+        uint32_t start = SysTick->VAL;
+        while ((SysTick->VAL - start + (1 << 24)) % (1 << 24) < ticks) {
+            // 空循环等待，无中断依赖
+        }
+    }
 };

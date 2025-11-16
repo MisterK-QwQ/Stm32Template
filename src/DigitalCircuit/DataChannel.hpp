@@ -124,8 +124,7 @@ public:
     //SPIChannel(const SPIChannel&) = delete;
     SPIChannel() = default;
     SPIChannel(SPI_HandleTypeDef hspi):hspi1(hspi){
-                HAL_SPI_Init(&hspi1);
-
+        HAL_SPI_Init(&hspi1);
     }
     /**
      * @brief 通过SPI发送数据
