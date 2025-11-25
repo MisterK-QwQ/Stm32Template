@@ -12,7 +12,7 @@ public:
      */
     I2CChannel(I2C_HandleTypeDef Hi2c)
     : hi2c(Hi2c) {
-        HAL_I2C_Init(&hi2c);
+    //    HAL_I2C_Init(&hi2c);
     };
      /**
      * @brief 向I2C从设备指定寄存器写入数据
@@ -124,7 +124,7 @@ public:
     //SPIChannel(const SPIChannel&) = delete;
     SPIChannel() = default;
     SPIChannel(SPI_HandleTypeDef hspi):hspi1(hspi){
-        HAL_SPI_Init(&hspi1);
+    //    HAL_SPI_Init(&hspi1);
     }
     /**
      * @brief 通过SPI发送数据
@@ -137,7 +137,8 @@ public:
     HAL_StatusTypeDef SPI_SendData(uint8_t* data, uint16_t len,uint32_t timeout=100) {
         return HAL_SPI_Transmit(&hspi1, data, len, timeout); 
     }
-        HAL_StatusTypeDef SPI_SendData(std::vector<uint8_t*> data, uint16_t len,uint32_t timeout=100) {
+
+    HAL_StatusTypeDef SPI_SendData(std::vector<uint8_t*> data, uint16_t len,uint32_t timeout=100) {
             for(size_t i=0;i<data.size();i++){
                  HAL_StatusTypeDef Status = HAL_SPI_Transmit(&hspi1, data[i], len, timeout); 
                 if(Status!=HAL_OK){
@@ -146,6 +147,7 @@ public:
             }
         return HAL_OK;
     }
+    
     /**
      * @brief 通过SPI接收数据
      * @param data 接收数据缓冲区

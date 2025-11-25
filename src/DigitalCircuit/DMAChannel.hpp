@@ -10,7 +10,7 @@ public:
     DMAChannel(const DMAChannel&) = delete;
     DMAChannel(DMA_HandleTypeDef dma)
     : hdma(dma) {
-        HAL_DMA_Init(&hdma);
+    //    HAL_DMA_Init(&hdma);
     };
 
     /**

@@ -13,7 +13,7 @@ public:
      */
     UARTChannel(UART_HandleTypeDef huart)
     : huart1(huart) {
-        HAL_UART_Init(&huart1);
+    //    HAL_UART_Init(&huart1);
     };
     
     /**

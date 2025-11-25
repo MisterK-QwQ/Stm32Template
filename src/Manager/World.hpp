@@ -52,10 +52,10 @@ public:
                 std::string HPstr="";
                 if(entity.status == Status::Death){
                     HPstr="You are dead!";
-                    manager.LDC.showAsciiStr(10,30,HPstr.c_str());
+                  //  manager.LDC.showAsciiStr(10,30,HPstr.c_str());
                 }//else{
                     HPstr="HP "+std::to_string(entity.HP);
-                    manager.LDC.showAsciiStr(0,10,HPstr.c_str());
+                //    manager.LDC.showAsciiStr(0,10,HPstr.c_str());
               //  }
             }
            // if (entity.status == Status::Death) continue;
@@ -68,13 +68,13 @@ public:
             }
           
           
-            manager.LDC.showCustomChar(
+          /*   manager.LDC.showCustomChar(
                 static_cast<uint8_t>(entity.vec2l.x),
                 static_cast<uint8_t>(entity.vec2l.y),
                 entity.Shape,
                 static_cast<uint8_t>(entity.Box.y),
                 static_cast<uint8_t>(entity.Box.x)
-            );
+            ); */
         }
         handleCollisions();
         manager.LDC.refreshScreen();

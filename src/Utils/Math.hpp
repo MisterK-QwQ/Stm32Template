@@ -144,7 +144,7 @@ public:
         : min_angle(min_angle), max_angle(max_angle),
           min_pulse(min_pulse), max_pulse(max_pulse),
           frequency(frequency) {}
-
+    
     /**
      * @brief 角度转脉冲宽度
      * @param angle 角度 (°)

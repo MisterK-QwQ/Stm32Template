@@ -1,5 +1,7 @@
 #pragma once
 #include "stm32f1xx_hal.h"
+#include <tuple>
+#include <set>
 
 #define LCD_WIDTH  128    // 列数（0-127）
 #define LCD_HEIGHT 64    // 行数（0-63）
@@ -19,19 +21,16 @@ public:
     void turnOnAllPixel();        // 强制全亮（测试用）
     void refreshScreen();
     void setInverseDisplay(bool v);
+    void refreshDirtyRegions(const std::set<std::tuple<uint8_t, uint8_t, uint8_t>>& regions);
     void drawCircle8Points(uint8_t x0, uint8_t y0, uint8_t x, uint8_t y, uint8_t color) ;
     void showCustomChar(uint8_t x, uint8_t y, const uint8_t* charData,uint8_t line=8,uint8_t row=8,uint8_t color=1);
-    // 显示8x8 ASCII字符（x：列0-127，y：行0-7，color：0=黑，1=白）
     void showAscii(uint8_t x, uint8_t y, char ch,uint8_t line=8,uint8_t row=8, uint8_t color=1);
     uint8_t reverseBit(uint8_t data);
     void showAsciiStr(uint8_t x, uint8_t y, const char* str,uint8_t Spacing=8,uint8_t line=8,uint8_t row=8,uint8_t color=1);
-    // 画点（x：0-127，y：0-63，color：0=黑，1=白）
+    void FshowAsciiStr(uint8_t x, uint8_t y, const char* str,uint8_t Spacing=8,uint8_t line=8,uint8_t row=8,uint8_t color=1,...);
     void drawPoint(uint8_t x, uint8_t y, uint8_t color);
-    // 画斜直线（x1,y1：起点；x2,y2：终点；color：颜色）
     void drawLine(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t color=1);
-    // 画三角形（x1,y1/x2,y2/x3,y3：三个顶点；color：颜色）
     void drawTriangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t x3, uint8_t y3, uint8_t color=1);
-
     void drawRect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2,bool fill=false, uint8_t color=1);
     void fillCircle(int x0, int y0, int r, int color);
     void drawCircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color=1);
