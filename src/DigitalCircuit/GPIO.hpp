@@ -267,7 +267,7 @@ public:
                 data->Gpio_initialized = true;
                  if (data->base != nullptr) {
                     if(!data->base->init()){
-                        LogF.logF(LogLevel::DEBUG,"%dInitialization failed!",data->base->get_type());
+                        while (1);
                     };
                 }
             }

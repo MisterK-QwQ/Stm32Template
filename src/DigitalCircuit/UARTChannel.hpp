@@ -22,6 +22,7 @@ public:
         if(HAL_UART_Init(&huart1)==HAL_OK){
             return true;
         };
+      
         return false;
     }
     /**

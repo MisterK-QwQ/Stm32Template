@@ -2,23 +2,6 @@
 
 Logger LogF;
 
-
-bool USART1_UART_Init(void) {
-  __HAL_RCC_USART1_CLK_ENABLE(); // 提前使能USART1时钟
-  Data.huart1.Instance = USART1;
-  Data.huart1.Init.BaudRate = 9600;  // 设置波特率
-  Data.huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  Data.huart1.Init.StopBits = UART_STOPBITS_1;
-  Data.huart1.Init.Parity = UART_PARITY_NONE;
-  Data.huart1.Init.Mode = UART_MODE_TX_RX;
-  Data.huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  Data.huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&Data.huart1) != HAL_OK) {
-    return false;
-  }
-  return true;
-}
-
 bool IWDG_Init(){
   Data.hiwdg.Instance = IWDG;  // 指定看门狗实例（独立看门狗只有IWDG）
   Data.hiwdg.Init.Prescaler = IWDG_PRESCALER_256;

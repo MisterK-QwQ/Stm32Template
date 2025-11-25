@@ -2,7 +2,7 @@
 #include "stm32f1xx_hal.h"
 #include <vector>
 #include "GpioBase.hpp"
-#include "Data/Data.hpp"
+
 class I2CChannel:public GpioBase {
 public:
     I2C_HandleTypeDef hi2c;

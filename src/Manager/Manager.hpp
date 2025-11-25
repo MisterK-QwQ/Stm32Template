@@ -3,6 +3,9 @@
 #include "DigitalCircuit/GPIO.hpp"
 #include "../DigitalCircuit/HS12864TG10B.hpp"
 class Manager{
+    private:
+
+
 public:
     HS12864TG10B LDC=HS12864TG10B(
         GPIOA, GPIO_PIN_5,  // SCL

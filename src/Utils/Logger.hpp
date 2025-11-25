@@ -13,12 +13,12 @@ enum class LogLevel {
 class Logger{
 public:
     Logger()=default;
-    Logger(UART_HandleTypeDef* huart):huart_(huart){};
+    Logger(UART_HandleTypeDef huart):huart_(huart){};
 
     Logger(const Logger&) = delete;
     Logger& operator=(const Logger&) = delete;
 
-    void SetHuart(UART_HandleTypeDef* huart){
+    void SetHuart(UART_HandleTypeDef huart){
         huart_=huart;
     }
 
@@ -33,9 +33,9 @@ public:
             case LogLevel::WARN:  level_str = "[WARN] "; break;
             case LogLevel::ERROR: level_str = "[ERROR] "; break;
         }
-         HAL_UART_Transmit(huart_, (const uint8_t*)level_str.c_str(), level_str.length(), 100);
-         HAL_UART_Transmit(huart_, (const uint8_t*)message.c_str(), message.length(), 100);
-         HAL_UART_Transmit(huart_, (const uint8_t*)"\r\n", 2, 100);
+         HAL_UART_Transmit(&huart_, (const uint8_t*)level_str.c_str(), level_str.length(), 100);
+         HAL_UART_Transmit(&huart_, (const uint8_t*)message.c_str(), message.length(), 100);
+         HAL_UART_Transmit(&huart_, (const uint8_t*)"\r\n", 2, 100);
     }
 
     void logF(LogLevel level ,std::string message, ...) {
@@ -53,6 +53,6 @@ public:
 
     
 private:
-     UART_HandleTypeDef* huart_;
+     UART_HandleTypeDef huart_;
 
 };

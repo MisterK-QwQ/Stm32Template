@@ -28,7 +28,6 @@ public:
         }
         return true;
     }
-
     /**
      * @brief ADC校准（提高转换精度） 初始化后需执行一次
      * @return HAL_StatusTypeDef HAL状态码（HAL_OK表示校准成功）
