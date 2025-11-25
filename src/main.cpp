@@ -24,6 +24,7 @@ int main(void) {
 #ifdef _Dog
         HAL_IWDG_Refresh(&Data.hiwdg);  // 喂狗
 #endif
+
     }
 }
 extern "C" void SysTick_Handler(void){   //每1msTick运行一次

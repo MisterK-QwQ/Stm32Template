@@ -114,7 +114,6 @@ HS12864TG10B::HS12864TG10B(GPIO_TypeDef* scl_port, uint16_t scl_pin,
       cs_port_(cs_port), cs_pin_(cs_pin),
       res_port_(res_port), res_pin_(res_pin) {}
 
-// ==================== 初始化函数 ====================
 void HS12864TG10B::init() {
     if(!manager.initManager){
         return;
@@ -142,7 +141,6 @@ void HS12864TG10B::init() {
     HAL_Delay(50);
 }
 
-// ==================== 基础显示控制 ====================
 void HS12864TG10B::displayOn() { writeCmd(0xAF); }
 void HS12864TG10B::displayOff() { writeCmd(0xAE); }
 
@@ -369,7 +367,6 @@ void HS12864TG10B::drawCircle8Points(uint8_t x0, uint8_t y0, uint8_t x, uint8_t 
     drawPoint(x0 + y, y0 - x, color);
     drawPoint(x0 - y, y0 - x, color);
 }
-// HS12864TG10B.cpp
 
 /**
  * @brief 绘制一个填充的圆形（使用 drawLine 实现）
