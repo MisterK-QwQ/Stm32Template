@@ -1,6 +1,6 @@
 #include "Data.hpp"
 
-Logger LogF(&Data.huart1);
+Logger LogF;
 
 
 bool USART1_UART_Init(void) {

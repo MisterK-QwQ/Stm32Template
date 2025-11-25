@@ -7,18 +7,16 @@ private:
 public:
     ADC_HandleTypeDef hadc;
     ADC_ChannelConfTypeDef sConfig;
-    ADCChannel(const ADCChannel&) = delete;
-    ADCChannel() = default;    
     /**
      * @brief 构造函数，初始化ADC通道
      * @param adc 指向已配置好的ADC句柄（含通道、采样时间等）
      * @param sConfig ADC通道配置结构体
      * @details 外部需配置ADC核心参数（如扫描模式、连续转换等）
      */
-    ADCChannel(ADC_HandleTypeDef adc,ADC_ChannelConfTypeDef sConfig)
-    :GpioBase(HardwareType::ADC), hadc(adc) {
-     
+    ADCChannel(ADC_HandleTypeDef adc,ADC_ChannelConfTypeDef sConfig):GpioBase(HardwareType::ADC), hadc(adc) {
     }
+    ADCChannel():GpioBase(HardwareType::ADC) {}
+
     virtual bool init()override {
         if(HAL_ADC_Init(&hadc)!=HAL_OK){
             return false;

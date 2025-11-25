@@ -6,8 +6,7 @@ public:
     TIM_HandleTypeDef htim;
     uint32_t channel;
     TIM_OC_InitTypeDef sConfigOC;
-    PWMChannel(const PWMChannel&) = delete;
-    PWMChannel() = default;
+    PWMChannel():GpioBase(HardwareType::PWM) {};
     /**
      * @brief  构造函数，初始化PWM通道
      * @param tim 已配置好的定时器句柄

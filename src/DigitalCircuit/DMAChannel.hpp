@@ -6,12 +6,9 @@ private:
     volatile uint8_t transfer_complete = 0;  // 传输完成标志位
 public:
     DMA_HandleTypeDef hdma;  // DMA句柄，存储DMA配置信息
-    DMAChannel() = default;
-    DMAChannel(const DMAChannel&) = delete;
-    DMAChannel(DMA_HandleTypeDef dma)
-    :GpioBase(HardwareType::DMA), hdma(dma) {
-    //    HAL_DMA_Init(&hdma);
-    };
+    DMAChannel():GpioBase(HardwareType::DMA){};
+    DMAChannel(DMA_HandleTypeDef dma):GpioBase(HardwareType::DMA), hdma(dma) {};
+
         virtual bool init()override {
         HAL_DMA_Init(&hdma);
         return true;

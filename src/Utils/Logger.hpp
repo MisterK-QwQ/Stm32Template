@@ -12,10 +12,15 @@ enum class LogLevel {
 
 class Logger{
 public:
+    Logger()=default;
     Logger(UART_HandleTypeDef* huart):huart_(huart){};
 
     Logger(const Logger&) = delete;
     Logger& operator=(const Logger&) = delete;
+
+    void SetHuart(UART_HandleTypeDef* huart){
+        huart_=huart;
+    }
 
     void Log( LogLevel level ,std::string message) {
 #ifndef _Log

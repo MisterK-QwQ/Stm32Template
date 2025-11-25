@@ -6,7 +6,6 @@ extern Logger LogF;
 struct DATA{
   UART_HandleTypeDef huart1;
   IWDG_HandleTypeDef hiwdg;
-  SPI_HandleTypeDef hspi1;  // 添加SPI句柄
 };
 inline DATA Data;
 

@@ -62,7 +62,7 @@ public:
     size_t GetGpioSize() { return m_count; }
     std::array<std::unique_ptr<GpioData>, MAX_GPIO_PINS>& Get_gpio_array() { return m_gpio_array; }
 
-    void Add(GPIO_TypeDef* port, const GPIO_InitTypeDef& init, GpioBase* hardware = nullptr) {
+    void Add(GPIO_TypeDef* port, const GPIO_InitTypeDef& init, GpioBase* hardware=nullptr) {
         if (port == nullptr || m_count >= MAX_GPIO_PINS) return;
         auto data = std::make_unique<GpioData>();
         data->port = port;
@@ -264,12 +264,12 @@ public:
                 }
 
                 HAL_GPIO_Init(data->port, &data->init_config);
-                if (data->base != nullptr) {
+                data->Gpio_initialized = true;
+                 if (data->base != nullptr) {
                     if(!data->base->init()){
                         LogF.logF(LogLevel::DEBUG,"%dInitialization failed!",data->base->get_type());
                     };
                 }
-                data->Gpio_initialized = true;
             }
         });
     }

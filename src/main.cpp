@@ -9,8 +9,13 @@ void onTestTrigger(GpioEvent& event) {
     if(!Time1.hasTimedElapsed(500,true)){
         return;
     }
+    if(event.Data->base->get_type()!=HardwareType::SPI){
+        return;
+
+    }
+
     HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(
-        &Data.hspi1,
+        nullptr,
         const_cast<uint8_t*>(TEST_DATA),
         rxBuffer.data(),
         DATA_LEN,
@@ -41,38 +46,32 @@ void onTestTrigger(GpioEvent& event) {
         LogF.logF(LogLevel::ERROR, "SPI Not code: %d", status);
     }
 }
-
 int main(void) {
     HAL_Init();
     SystemClock_Config();
-#ifdef _Dog
+    #ifdef _Dog
     IWDG_Init(); // 启动定时器中断  看门狗
 #endif
-#ifdef _Log
-    USART1_UART_Init();  //logger USART1初始化
-#endif
     manager.init();
-   /*  if (HAL_SPI_Init(&Data.hspi1) != HAL_OK) {
-        LogF.logF(LogLevel::ERROR, "SPI1 初始化失败");
-    } */
+#ifdef _Log
+   // USART1_UART_Init();  //logger USART1初始化
+#endif
+
     LogF.logF(LogLevel::INFO,"Initialized");
-   // manager.LDC.init();
-
-    manager.mDispatcher.registerListener<GpioEvent>(onTestTrigger);
-
     LogF.logF(LogLevel::INFO,"Gpio Size:%d GPIOA:%d GPIOB:%d GPIOC:%d"
         ,manager.gpio.GetGpioSize()
         ,manager.gpio.clock[0].second
         ,manager.gpio.clock[1].second
         ,manager.gpio.clock[2].second
     );
-
+    TimerUtil Time1;
     while (true) {
         manager.read();      
 #ifdef _Dog
         HAL_IWDG_Refresh(&Data.hiwdg);  // 喂狗
 #endif
-
+    if(Time1.hasTimedElapsed(100,true))
+        LogF.logF(LogLevel::INFO,"Initialized");
     }
 }
 extern "C" void SysTick_Handler(void){   //每1msTick运行一次
