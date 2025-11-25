@@ -1,6 +1,7 @@
 #pragma once
 #include "stm32f1xx_hal.h"
-class ADCChannel {
+#include "GpioBase.hpp"
+class ADCChannel:public GpioBase {
 private:
     uint8_t calibrated = 0;
 public:
@@ -15,11 +16,21 @@ public:
      * @details 外部需配置ADC核心参数（如扫描模式、连续转换等）
      */
     ADCChannel(ADC_HandleTypeDef adc,ADC_ChannelConfTypeDef sConfig)
-    : hadc(adc) {
-        HAL_ADC_Init(&hadc);
-        HAL_ADC_ConfigChannel(&hadc, &sConfig);
+    :GpioBase(HardwareType::ADC), hadc(adc) {
+     
     }
-    
+    virtual bool init()override {
+        if(HAL_ADC_Init(&hadc)!=HAL_OK){
+            return false;
+
+        }
+        if(HAL_ADC_ConfigChannel(&hadc, &sConfig)!=HAL_OK){
+
+            return false;
+        }
+        return true;
+    }
+
     /**
      * @brief ADC校准（提高转换精度） 初始化后需执行一次
      * @return HAL_StatusTypeDef HAL状态码（HAL_OK表示校准成功）

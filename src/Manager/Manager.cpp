@@ -54,33 +54,33 @@ void Manager::init() {
     gpio.Add(GPIOA,{GPIO_PIN_7,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_HIGH});  //MOSI输出
     gpio.Add(GPIOA,{GPIO_PIN_4,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_HIGH});  //CS数据
     gpio.Add(GPIOC,{GPIO_PIN_13,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_LOW});  //复位 */
-     Data.hspi1.Instance = SPI1;
-    Data.hspi1.Init.Mode = SPI_MODE_MASTER;
-    Data.hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-    Data.hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-    Data.hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-    Data.hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-    Data.hspi1.Init.NSS = SPI_NSS_SOFT;  // 软件片选
-    Data.hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;  // 4MHz
-    Data.hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-    Data.hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-    Data.hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+    SPIChannel Spi;
+    Spi.hspi1.Instance = SPI1;
+    Spi.hspi1.Init.Mode = SPI_MODE_MASTER;
+    Spi.hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+    Spi.hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+    Spi.hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+    Spi.hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+    Spi.hspi1.Init.NSS = SPI_NSS_SOFT;  // 软件片选
+    Spi.hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;  // 4MHz
+    Spi.hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    Spi.hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+    Spi.hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
     gpio.Add(GPIOA, 
         {GPIO_PIN_5, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH}, 
-        Hardware(SPIChannel(Data.hspi1))  // 使用全局句柄
+        &Spi
     );
     gpio.Add(GPIOA,
         {GPIO_PIN_6, GPIO_MODE_AF_INPUT, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH},
-        Hardware(SPIChannel(Data.hspi1))
+        &Spi
     );
     gpio.Add(GPIOA,
         {GPIO_PIN_7, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH},
-        Hardware(SPIChannel(Data.hspi1))
+        &Spi
     );
 
     gpio.Add(GPIOA, {GPIO_PIN_9, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH});   // USART1_TX  发送
     gpio.Add(GPIOA, {GPIO_PIN_10, GPIO_MODE_AF_INPUT, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH});    // USART1_RX  接受
-
     gpio.InitAll();
     initManager=true;
 }

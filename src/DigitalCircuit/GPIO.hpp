@@ -1,15 +1,28 @@
 #pragma once
 #include <memory>
-#include <unordered_map>
+#include <array>
 #include <cstdint>
-#include <functional>  
+#include <functional>
 #include "stm32f1xx_hal.h"
-
-#include "DataChannel.hpp"
+#include "GpioBase.hpp"
 #include "PWMChannel.hpp"
 #include "ADC.hpp"
 #include "UARTChannel.hpp"
+#include "DataChannel.hpp"
 #include "DMAChannel.hpp"
+
+enum class ClockSource {
+    _GPIOA, _GPIOB, _GPIOC,
+    _TIM1, _TIM2, _TIM3,
+    _I2C1,
+    _USART1, _USART2,
+    _SPI1,
+    _ADC1, _ADC2,
+    _DMA1, _DMA2,
+    _NONE,
+    MAX
+};
+
 
 using GpioKey = uint64_t;
 
@@ -18,103 +31,47 @@ inline GpioKey make_key(GPIO_TypeDef* port, uint16_t pin) {
 }
 
 inline void decompose_key(GpioKey key, GPIO_TypeDef*& port, uint16_t& pin) {
-    uintptr_t port_ptr_val = static_cast<uintptr_t>(key >> 32);  // 高32位是端口指针
+    uintptr_t port_ptr_val = static_cast<uintptr_t>(key >> 32);
     port = reinterpret_cast<GPIO_TypeDef*>(port_ptr_val);
-    pin = static_cast<uint16_t>(key & 0xFFFF);  // 低32位的低16位是引脚号
+    pin = static_cast<uint16_t>(key & 0xFFFF);
 }
-
-class Hardware {
-public:
-    PWMChannel pwm_channel;
-    SPIChannel spi_channel;
-    I2CChannel i2c_channel;
-    DMAChannel dma_channel;
-    ADCChannel adc_channel;
-    UARTChannel uart_channel;
-    
-    Hardware() = default;
-
-    Hardware(UARTChannel uart){
-        uart_channel = uart;
-    }
-     Hardware(PWMChannel pwm){
-        pwm_channel = pwm;
-    }
-    Hardware(SPIChannel spi) {
-        spi_channel = spi;
-    }
-    Hardware(I2CChannel i2c){
-        i2c_channel = i2c;
-    }
-    Hardware(DMAChannel dma){
-        dma_channel = dma;
-    }
-    Hardware(ADCChannel adc){
-        adc_channel = adc;
-    }
-};
 
 class GpioData {
 public:
-    bool Data_initialized;
-    bool Gpio_initialized;               // 初始化状态标记
-    GPIO_TypeDef* port = nullptr;           // GPIO端口指针
-    GPIO_InitTypeDef init_config;           // GPIO初始化配置
-    Hardware hardware_info;                 // 硬件相关信息
+    bool Gpio_initialized = false;
+    GPIO_TypeDef* port = nullptr;
+    GPIO_InitTypeDef init_config = {0};
+    GpioBase* base = nullptr;
 };
 
 class GPIO {
 private:
-    static constexpr size_t MAX_GPIO_PINS = 64;  // 最大支持64个引脚
+    static constexpr size_t MAX_GPIO_PINS = 64;
     std::array<std::unique_ptr<GpioData>, MAX_GPIO_PINS> m_gpio_array;
-    size_t m_count = 0;  // 当前已添加的引脚数量
+    size_t m_count = 0;
+
 public:
 
-    std::array<std::pair<bool, size_t>, 16> clock{};
-    /**
-     * [0] GPIOA
-     * [1] GPIOB
-     * [2] GPIOC
-     * [3] TIM1
-     * [4] TIM2
-     * [5] TIM3
-     * [6] I2C1
-     */
-
+    std::array<std::pair<bool, size_t>, static_cast<size_t>(ClockSource::MAX)> clock{};
 
     GPIO() = default;
     ~GPIO() = default;
-
     GPIO(const GPIO&) = delete;
     GPIO& operator=(const GPIO&) = delete;
 
-    size_t GetGpioSize(){
-        return m_count;
-    }
-    std::array<std::unique_ptr<GpioData>, MAX_GPIO_PINS>& Get_gpio_array(){
-        return m_gpio_array;
-    }
-    /**
-     * @brief 添加GPIO引脚配置
-     */
-      void Add(GPIO_TypeDef* port, const GPIO_InitTypeDef& init, 
-             const Hardware& hardware = Hardware()) {
-        if (port == nullptr || m_count >= MAX_GPIO_PINS) return;  // 检查容量
-        
+    size_t GetGpioSize() { return m_count; }
+    std::array<std::unique_ptr<GpioData>, MAX_GPIO_PINS>& Get_gpio_array() { return m_gpio_array; }
+
+    void Add(GPIO_TypeDef* port, const GPIO_InitTypeDef& init, GpioBase* hardware = nullptr) {
+        if (port == nullptr || m_count >= MAX_GPIO_PINS) return;
         auto data = std::make_unique<GpioData>();
         data->port = port;
         data->init_config = init;
-        data->hardware_info = hardware;
-        data->Gpio_initialized = false;
-        data->Data_initialized = false;
-        m_gpio_array[m_count++] = std::move(data);  // 存入数组
+        data->base = hardware;
+        m_gpio_array[m_count++] = std::move(data);
     }
 
-    /**
-     * @brief 获取指定引脚的配置数据
-     * @return 找到返回GpioData指针，否则返回nullptr
-     */
-     GpioData* GetData(GPIO_TypeDef* port, uint16_t pin) {
+    GpioData* GetData(GPIO_TypeDef* port, uint16_t pin) {
         if (port == nullptr || pin == 0) return nullptr;
         for (size_t i = 0; i < m_count; ++i) {
             auto& data = m_gpio_array[i];
@@ -125,9 +82,6 @@ public:
         return nullptr;
     }
 
-    /**
-     * @brief 读取指定引脚电平
-     */
     GPIO_PinState read(GPIO_TypeDef* port, uint16_t pin) {
         GpioData* data = GetData(port, pin);
         if (data && data->Gpio_initialized && data->port != nullptr) {
@@ -135,11 +89,7 @@ public:
         }
         return GPIO_PIN_RESET;
     }
-    
-    /**
-     * @brief 遍历所有已添加的GPIO引脚
-     * @param callback 回调函数，参数为：端口、引脚号、GpioData指针
-     */
+
     void ForEach(const std::function<void(GPIO_TypeDef*, uint16_t, GpioData*)>& callback) {
         for (size_t i = 0; i < m_count; ++i) {
             auto& data = m_gpio_array[i];
@@ -149,25 +99,13 @@ public:
         }
     }
 
-    /**
-     * @brief 遍历指定端口的所有引脚
-     * @param port 目标端口（如GPIOA）
-     * @param callback 回调函数，参数为：引脚号、GpioData指针
-     */
     void ForEachInPort(GPIO_TypeDef* port, const std::function<void(uint16_t, GpioData*)>& callback) {
         if (port == nullptr) return;
         ForEach([&](GPIO_TypeDef* curr_port, uint16_t pin, GpioData* data) {
-            if (curr_port == port) {
-                callback(pin, data);
-            }
+            if (curr_port == port) callback(pin, data);
         });
     }
 
-    /**
-     * @brief 按条件查找GPIO引脚
-     * @param condition 条件函数（返回true表示匹配）
-     * @return 第一个匹配的引脚数据（port, pin, data），无匹配则返回空
-     */
     std::tuple<GPIO_TypeDef*, uint16_t, GpioData*> FindIf(
         const std::function<bool(GPIO_TypeDef*, uint16_t, GpioData*)>& condition
     ) {
@@ -184,104 +122,153 @@ public:
     }
 
     /**
-     * @brief 初始化所有未初始化的GPIO引脚
+     * @brief 初始化所有未初始化的GPIO引脚和关联的硬件外设
      */
     void InitAll() {
         ForEach([this](GPIO_TypeDef* port, uint16_t pin, GpioData* data) {
             if (!data->Gpio_initialized) {
-                if(data->port==GPIOA){
-                    if(!clock[0].first){
+                if (port == GPIOA) {
+                    auto idx = (size_t)(ClockSource::_GPIOA);
+                    if (!clock[(idx)].first) {
                         __HAL_RCC_GPIOA_CLK_ENABLE();
-                        clock[0].first=true;
+                        clock[idx].first = true;
                     }
-                    ++clock[0].second;
+                    clock[idx].second++;
                 }
-                
-                if(data->port==GPIOB){
-                      if(!clock[1].first){
+                if (port == GPIOB) {
+                    auto idx = (size_t)(ClockSource::_GPIOB);
+                    if (!clock[idx].first) {
                         __HAL_RCC_GPIOB_CLK_ENABLE();
-                        clock[1].first=true;
+                        clock[idx].first = true;
                     }
-                    ++clock[1].second;
+                    clock[idx].second++;
+                }
+                if (port == GPIOC) {
+                    auto idx = (size_t)(ClockSource::_GPIOC);
+                    if (!clock[idx].first) {
+                        __HAL_RCC_GPIOC_CLK_ENABLE();
+                        clock[idx].first = true;
+                    }
+                    clock[idx].second++;
                 }
                 
-                if(data->port==GPIOC){
-                    if(!clock[2].first){
-                        __HAL_RCC_GPIOC_CLK_ENABLE();
-                        clock[2].first=true;
+                if (data->base != nullptr) {
+                    switch (data->base->get_type()) {
+                        case HardwareType::PWM: {
+                            PWMChannel* pwm_ptr = static_cast<PWMChannel*>(data->base);
+                            if (pwm_ptr->htim.Instance == TIM1) {
+                                auto idx = (size_t)(ClockSource::_TIM1);
+                                if (!clock[idx].first) {
+                                    __HAL_RCC_TIM1_CLK_ENABLE();
+                                    clock[idx].first = true;
+                                }
+                                clock[idx].second++;
+                            }
+                            if (pwm_ptr->htim.Instance == TIM2) {
+                                auto idx = (size_t)(ClockSource::_TIM2);
+                                if (!clock[idx].first) {
+                                    __HAL_RCC_TIM2_CLK_ENABLE();
+                                    clock[idx].first = true;
+                                }
+                                clock[idx].second++;
+                            }
+                            if (pwm_ptr->htim.Instance == TIM3) {
+                                auto idx = (size_t)(ClockSource::_TIM3);
+                                if (!clock[idx].first) {
+                                    __HAL_RCC_TIM3_CLK_ENABLE();
+                                    clock[idx].first = true;
+                                }
+                                clock[idx].second++;
+                            }
+                            break;
+                        }
+                        case HardwareType::ADC: {
+                            ADCChannel* adc_ptr = static_cast<ADCChannel*>(data->base);
+                            if (adc_ptr->hadc.Instance == ADC1) {
+                                auto idx = (size_t)(ClockSource::_ADC1);
+                                if (!clock[idx].first) {
+                                    __HAL_RCC_ADC1_CLK_ENABLE();
+                                    clock[idx].first = true;
+                                }
+                                clock[idx].second++;
+                            }
+                            if (adc_ptr->hadc.Instance == ADC2) {
+                                auto idx = (size_t)(ClockSource::_ADC2);
+                                if (!clock[idx].first) {
+                                    __HAL_RCC_ADC2_CLK_ENABLE();
+                                    clock[idx].first = true;
+                                }
+                                clock[idx].second++;
+                            }
+                            break;
+                        }
+                        case HardwareType::UART: {
+                            UARTChannel* uart_ptr = static_cast<UARTChannel*>(data->base);
+                            if (uart_ptr->huart1.Instance == USART1) {
+                                auto idx = (size_t)(ClockSource::_USART1);
+                                if (!clock[idx].first) {
+                                    __HAL_RCC_USART1_CLK_ENABLE();
+                                    clock[idx].first = true;
+                                }
+                                clock[idx].second++;
+                            }
+                            if (uart_ptr->huart1.Instance == USART2) {
+                                auto idx = (size_t)(ClockSource::_USART2);
+                                if (!clock[idx].first) {
+                                    __HAL_RCC_USART2_CLK_ENABLE();
+                                    clock[idx].first = true;
+                                }
+                                clock[idx].second++;
+                            }
+                            break;
+                        }
+                        case HardwareType::SPI: {
+                            SPIChannel* spi_ptr = static_cast<SPIChannel*>(data->base);
+                            if (spi_ptr->hspi1.Instance == SPI1) {
+                                auto idx = (size_t)(ClockSource::_SPI1);
+                                if (!clock[idx].first) {
+                                    __HAL_RCC_SPI1_CLK_ENABLE();
+                                    clock[idx].first = true;
+                                }
+                                clock[idx].second++;
+                            }
+                            break;
+                        }
+                        case HardwareType::I2C: {
+                            I2CChannel* i2c_ptr = static_cast<I2CChannel*>(data->base);
+                            if (i2c_ptr->hi2c.Instance == I2C1) {
+                                auto idx = (size_t)(ClockSource::_I2C1);
+                                if (!clock[idx].first) {
+                                    __HAL_RCC_I2C1_CLK_ENABLE();
+                                    clock[idx].first = true;
+                                }
+                                clock[idx].second++;
+                            }
+                            break;
+                        }
+                        case HardwareType::DMA: {
+                            DMAChannel* dma_ptr = static_cast<DMAChannel*>(data->base);
+                            if (dma_ptr->hdma.Instance == DMA1_Channel1) {
+                                auto idx = (size_t)(ClockSource::_DMA1);
+                                if (!clock[idx].first) {
+                                    __HAL_RCC_DMA1_CLK_ENABLE();
+                                    clock[idx].first = true;
+                                }
+                                clock[idx].second++;
+                            }
+                            break;
+                        }
+                        default:
+                            break;
                     }
-                    ++clock[2].second;
-                }
-
-                //Hardware init.
-                if(data->hardware_info.pwm_channel.htim.Instance==TIM1){
-                    if(!clock[3].first){
-                        __HAL_RCC_TIM1_CLK_ENABLE();
-                        clock[3].first=true;
-                    }
-                    ++clock[3].second;
-                }
-                if(data->hardware_info.pwm_channel.htim.Instance==TIM2){
-                    if(!clock[4].first){
-                        __HAL_RCC_TIM2_CLK_ENABLE();
-                        clock[4].first=true;
-                    }
-                    ++clock[4].second;
-                }
-
-                if(data->hardware_info.pwm_channel.htim.Instance==TIM3){
-                    if(!clock[5].first){
-                        __HAL_RCC_TIM3_CLK_ENABLE();
-                        clock[5].first=true;
-                    }
-                    ++clock[5].second;
-                }
-                if (data->hardware_info.i2c_channel.hi2c.Instance == I2C1) {
-                    if (!clock[6].first) {
-                        __HAL_RCC_I2C1_CLK_ENABLE();
-                        clock[6].first = true;
-                    }
-                    ++clock[6].second;
-                }
-                if(data->hardware_info.uart_channel.huart1.Instance==USART1){
-                    if (!clock[7].first) {
-                        __HAL_RCC_USART1_CLK_ENABLE();
-                        clock[7].first = true;
-                    }
-                    ++clock[7].second;
-
-                }
-                 if(data->hardware_info.uart_channel.huart1.Instance==USART2){
-                    if (!clock[8].first) {
-                        __HAL_RCC_USART2_CLK_ENABLE();
-                        clock[8].first = true;
-                    }
-                    ++clock[8].second;
-                }
-                 if(data->hardware_info.spi_channel.hspi1.Instance==SPI1){
-                    if (!clock[9].first) {
-                        __HAL_RCC_SPI1_CLK_ENABLE();
-                        clock[9].first = true;
-                    }
-                    ++clock[9].second;
-                }
-                if(data->hardware_info.adc_channel.hadc.Instance==ADC1){
-                    if (!clock[10].first) {
-                        __HAL_RCC_ADC1_CLK_ENABLE();
-                        clock[10].first = true;
-                    }
-                    ++clock[10].second;
-                }
-                if(data->hardware_info.adc_channel.hadc.Instance==ADC2){
-                    if (!clock[11].first) {
-                        __HAL_RCC_ADC2_CLK_ENABLE();
-                        clock[11].first = true;
-                    }
-                    ++clock[11].second;
                 }
 
                 HAL_GPIO_Init(data->port, &data->init_config);
-
+                if (data->base != nullptr) {
+                    if(!data->base->init()){
+                        LogF.logF(LogLevel::DEBUG,"%dInitialization failed!",data->base->get_type());
+                    };
+                }
                 data->Gpio_initialized = true;
             }
         });

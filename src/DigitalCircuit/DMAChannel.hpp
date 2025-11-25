@@ -1,7 +1,7 @@
 #pragma once
 #include "stm32f1xx_hal.h"
-
-class DMAChannel {
+#include "GpioBase.hpp"
+class DMAChannel :public GpioBase{
 private:
     volatile uint8_t transfer_complete = 0;  // 传输完成标志位
 public:
@@ -9,10 +9,13 @@ public:
     DMAChannel() = default;
     DMAChannel(const DMAChannel&) = delete;
     DMAChannel(DMA_HandleTypeDef dma)
-    : hdma(dma) {
+    :GpioBase(HardwareType::DMA), hdma(dma) {
     //    HAL_DMA_Init(&hdma);
     };
-
+        virtual bool init()override {
+        HAL_DMA_Init(&hdma);
+        return true;
+    }
     /**
      * @brief 启动DMA传输（轮询模式，无中断）
      * @param src 源地址（外设寄存器地址或内存地址）

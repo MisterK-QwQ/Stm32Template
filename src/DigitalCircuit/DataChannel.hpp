@@ -1,7 +1,9 @@
 #pragma once
 #include "stm32f1xx_hal.h"
 #include <vector>
-class I2CChannel {
+#include "GpioBase.hpp"
+#include "Data/Data.hpp"
+class I2CChannel:public GpioBase {
 public:
     I2C_HandleTypeDef hi2c;
     I2CChannel() = default;
@@ -11,9 +13,15 @@ public:
      * @details 外部需配置I2C核心参数（如时钟速度、地址模式等）
      */
     I2CChannel(I2C_HandleTypeDef Hi2c)
-    : hi2c(Hi2c) {
-    //    HAL_I2C_Init(&hi2c);
+    :GpioBase(HardwareType::I2C), hi2c(Hi2c) {
     };
+    virtual bool init()override {
+        if(HAL_I2C_Init(&hi2c)==HAL_OK){
+            return true;
+        }
+        return false;
+    }
+
      /**
      * @brief 向I2C从设备指定寄存器写入数据
      * @param dev_addr 从设备7位地址（无需左移，内部自动处理读写位）
@@ -118,13 +126,22 @@ public:
 
 };
 
-class SPIChannel {
+class SPIChannel :public GpioBase{
 public:
     SPI_HandleTypeDef hspi1;
     //SPIChannel(const SPIChannel&) = delete;
-    SPIChannel() = default;
-    SPIChannel(SPI_HandleTypeDef hspi):hspi1(hspi){
+    //SPIChannel() = default;
+     SPIChannel():GpioBase(HardwareType::SPI){
     //    HAL_SPI_Init(&hspi1);
+    }
+    SPIChannel(SPI_HandleTypeDef hspi):GpioBase(HardwareType::SPI),hspi1(hspi){
+    //    HAL_SPI_Init(&hspi1);
+    }
+    virtual bool init()override {
+        if(HAL_SPI_Init(&hspi1)==HAL_OK){
+            return true;
+        }
+        return false;
     }
     /**
      * @brief 通过SPI发送数据

@@ -1,6 +1,7 @@
 #pragma once
 #include "stm32f1xx_hal.h"
-class UARTChannel {
+#include "GpioBase.hpp"
+class UARTChannel:public GpioBase {
 public:
     UART_HandleTypeDef huart1;
     uint8_t rx_buf[128] = {0}; // 接收缓冲区
@@ -12,10 +13,15 @@ public:
      * @details 外部需配置UART核心参数（如波特率、数据位等）
      */
     UARTChannel(UART_HandleTypeDef huart)
-    : huart1(huart) {
+    :GpioBase(HardwareType::UART), huart1(huart) {
     //    HAL_UART_Init(&huart1);
     };
-    
+    virtual bool init()override {
+        if(HAL_UART_Init(&huart1)==HAL_OK){
+            return true;
+        };
+        return false;
+    }
     /**
      * @brief 发送数据
      * @param data 待发送数据缓冲区

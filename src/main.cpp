@@ -52,9 +52,9 @@ int main(void) {
     USART1_UART_Init();  //logger USART1初始化
 #endif
     manager.init();
-    if (HAL_SPI_Init(&Data.hspi1) != HAL_OK) {
+   /*  if (HAL_SPI_Init(&Data.hspi1) != HAL_OK) {
         LogF.logF(LogLevel::ERROR, "SPI1 初始化失败");
-    }
+    } */
     LogF.logF(LogLevel::INFO,"Initialized");
    // manager.LDC.init();
 
