@@ -38,13 +38,13 @@ void Manager::read(GPIO_TypeDef port) {
 }
 
 void Manager::init() {
-   gpio.Add(GPIOA,{GPIO_PIN_7,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_HIGH});  //SDA
+/*    gpio.Add(GPIOA,{GPIO_PIN_7,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_HIGH});  //SDA
     gpio.Add(GPIOA,{GPIO_PIN_5,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_HIGH});  //SCL
     gpio.Add(GPIOA,{GPIO_PIN_4,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_HIGH});  //RES
     gpio.Add(GPIOA,{GPIO_PIN_3,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_HIGH});  //CS
     gpio.Add(GPIOA,{GPIO_PIN_2,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_HIGH});  //A0
     gpio.Add(GPIOB, {GPIO_PIN_0, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW});    //背光A
- 
+  */
 
 /*     gpio.Add(GPIOA,{GPIO_PIN_0,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_HIGH});  //中断
     gpio.Add(GPIOA,{GPIO_PIN_5,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_HIGH});  //SCK ：时钟信号线
@@ -52,7 +52,23 @@ void Manager::init() {
     gpio.Add(GPIOA,{GPIO_PIN_7,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_HIGH});  //MOSI输出
     gpio.Add(GPIOA,{GPIO_PIN_4,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_HIGH});  //CS数据
     gpio.Add(GPIOC,{GPIO_PIN_13,GPIO_MODE_OUTPUT_PP,GPIO_NOPULL,GPIO_SPEED_FREQ_LOW});  //复位 */
-    
+
+    pwm.htim.Instance = TIM2; 
+    pwm.htim.Init.Prescaler = 7; 
+    pwm.htim.Init.CounterMode = TIM_COUNTERMODE_UP;
+    pwm.htim.Init.Period = 19999; 
+    pwm.htim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    pwm.htim.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+
+     pwm.sConfigOC.OCMode = TIM_OCMODE_PWM1;
+    pwm.sConfigOC.Pulse = 1500;
+    pwm.sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;  
+    pwm.sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+
+    pwm.channel=TIM_CHANNEL_1;
+
+    gpio.Add(GPIOC, {GPIO_PIN_13, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW});
+    gpio.Add(GPIOA, {GPIO_PIN_0, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH},&pwm);
     {
         Data.Uart_c.huart1.Instance = USART1;
         Data.Uart_c.huart1.Init.BaudRate = 9600;

@@ -6,12 +6,12 @@
 class I2CChannel:public GpioBase {
 public:
     I2C_HandleTypeDef hi2c;
-    I2CChannel() = default;
     /**
      * @brief 构造函数，初始化I2C通道
      * @param hi2c 指向已配置好的I2C句柄
      * @details 外部需配置I2C核心参数（如时钟速度、地址模式等）
      */
+    I2CChannel():GpioBase(HardwareType::I2C) {};
     I2CChannel(I2C_HandleTypeDef Hi2c)
     :GpioBase(HardwareType::I2C), hi2c(Hi2c) {
     };

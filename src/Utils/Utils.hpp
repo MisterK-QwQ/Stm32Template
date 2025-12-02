@@ -9,6 +9,7 @@
 #include "stm32f1xx_hal.h"
 #include "Time.hpp"
 #include "TimerUtil.hpp"
+#include "Vector.hpp"
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
